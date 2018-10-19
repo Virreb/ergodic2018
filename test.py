@@ -48,11 +48,14 @@ def aStar(tiles):
         elif id_y == 99 and target_y == 100:
             return False
 
-        if tiles[target_y][target_x]['type'] in ['forest', 'rocky_water']:  # Todo: Check rocky water
+        if tiles[target_y][target_x]['type'] == 'forest':  # Todo: Check rocky water
+            return False
+
+        if tiles[id_y][id_x]['type'] == 'forest':  # Todo: Check rocky water
             return False
 
         return True
-
+    nbr_forests_in_g = 0
     for id_y in range(0, nbr_tiles):
         for id_x in range(0, nbr_tiles):
 
@@ -63,13 +66,22 @@ def aStar(tiles):
 
             # TODO: Also check for streams and elevation
 
-            for x, y in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+            for y, x in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
                 target_x = id_x + x
                 target_y = id_y + y
 
                 if add_edge(id_x, id_y, target_x, target_y) is True:
                     G.add_edge((id_y, id_x), (target_y, target_x), weight=move_cost[tiles[target_y][target_x]['type']])
 
+                    if tiles[target_y][target_x]['type'] == 'forest':
+                        nbr_forests_in_g += 1
+
+    print('Number of forests in G:' + str(nbr_forests_in_g))
+    nodes = G.nodes
+    if (73, 13) in nodes:
+        print(tiles[73][13])
+        print('!!!')
+        exit()
     best_path = nx.astar_path(G, start, goal)
 
     actions = []

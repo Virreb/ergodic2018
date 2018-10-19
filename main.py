@@ -32,13 +32,12 @@ def visualize_solution(tiles, path):
 
     for tile in path:
         plot_data[tile[0], tile[1]] = 4
-
-        if tiles[tile[0]][tile[1]] == 'forest':
+        if tiles[tile[0]][tile[1]]['type'] == 'forest':
             plot_data[tile[0], tile[1]] = 5
         # print(f'x={tile[1]}, y={tile[0]}')
 
     fig, ax = plt.subplots()
-    cmap = mpl.colors.ListedColormap(['g', 'b', 'b', 'y', 'r', 'c'])
+    cmap = mpl.colors.ListedColormap(['g', 'b', 'black', 'y', 'r', 'c'])
     bounds = [0, 1, 2, 3, 4, 5, 6]
     norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
     ax.imshow(plot_data, cmap=cmap, norm=norm)
