@@ -48,7 +48,7 @@ def solution(game_id):
                       f'state={state["yourPlayer"]["status"]}, stamina={state["yourPlayer"]["stamina"]}, '
                       f'current tile={current_tile_type}')
                 print('  ')
-                break
+                #break
 
             # print(f'time for iteration: {time.time() - start_time}')
 

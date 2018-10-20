@@ -115,6 +115,7 @@ def create_baseline(tiles, current_pos, current_stamina):
     import networkx as nx
 
     cost_graph = nx.DiGraph()
+    optimize_graph = nx.DiGraph()
 
     for id_y in range(0, NBR_TILES):
         for id_x in range(0, NBR_TILES):
@@ -156,6 +157,7 @@ def create_baseline(tiles, current_pos, current_stamina):
                             weight += waterstream_speed
 
                     cost_graph.add_edge((id_y, id_x), (target_y, target_x), weight=weight)
+                    optimize_graph.add_edge((id_y, id_x), (target_y, target_x), weight=1)
 
     movement = {}
     for speed in ['fast', 'medium', 'slow']:
@@ -167,6 +169,7 @@ def create_baseline(tiles, current_pos, current_stamina):
             if applicable_movement:
 
                 cost_graph.add_edge(current_pos, target_pos, weight=total_movement_cost)
+                optimize_graph.add_edge(current_pos, target_pos, weight=1)
                 movement[target_pos] = {'speed': speed, 'direction': direction}
 
                 if updated_stamina < 65:
@@ -184,10 +187,12 @@ def create_baseline(tiles, current_pos, current_stamina):
 
                         if applicable_movement:
                             cost_graph.add_edge(target_pos, target_pos_2, weight=total_movement_cost)
+                            optimize_graph.add_edge(target_pos, target_pos_2, weight=1)
 
     #best_path = nx.astar_path(G, start, goal)
-    best_path = nx.dijkstra_path(cost_graph, current_pos, goal)
-    visualize_path(tiles, best_path)
+    #best_path = nx.dijkstra_path(cost_graph, current_pos, goal)
+    best_path = nx.dijkstra_path(optimize_graph, current_pos, goal)
+    #visualize_path(tiles, best_path)
 
     # print(best_path[0], best_path[1])
     step_direction = get_dir_from_tiles(best_path[0], best_path[1])
