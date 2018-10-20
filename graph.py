@@ -4,6 +4,21 @@ OPPOSITE_DIRS = {'w': 'e',
                  'n': 's',
                  's': 'n'}
 
+DIR_OFFSET = {'n': (-1, 0),
+              's': (1, 0),
+              'w': (0, -1),
+              'e': (0, 1)}
+
+NBR_TILES = 100
+MAX_INT = 100000
+RAIN_PUNISHMENT = 10    # TODO: Optimize
+STAMINA_SAFETY = 20
+
+MOVEMENT_COST = {'water': 45, 'road': 31, 'trail': 40, 'grass': 50, 'rain': RAIN_PUNISHMENT, 'forest': MAX_INT,
+             'start': MAX_INT, 'win': 0}
+STAMINA_COST = {'fast': 50, 'medium': 30, 'slow': 10, 'step': 15}
+MOVEMENT_POINTS = {'fast': 210, 'medium': 150, 'slow': 100}
+
 
 def add_valid_edge(id_x, id_y, target_x, target_y, tiles):
 
@@ -19,10 +34,10 @@ def add_valid_edge(id_x, id_y, target_x, target_y, tiles):
     elif id_y == 99 and target_y == 100:
         return False
 
-    if tiles[target_y][target_x]['type'] == 'forest':  # Todo: Check rocky water
+    if tiles[target_y][target_x]['type'] in ['forest', 'rocky_water']:  # Todo: Check rocky water
         return False
 
-    if tiles[id_y][id_x]['type'] == 'forest':  # Todo: Check rocky water
+    if tiles[id_y][id_x]['type'] in ['forest', 'rocky_water']:  # Todo: Check rocky water
         return False
 
     return True
@@ -33,14 +48,14 @@ def get_dir_from_tiles(from_tile, to_tile):
     diff_x = to_tile[1] - from_tile[1]
     diff_y = to_tile[0] - from_tile[0]
 
-    if diff_x == 1:
+    if diff_x > 0:
         action = 'e'
-    elif diff_x == -1:
+    elif diff_x < 0:
         action = 'w'
 
-    if diff_y == 1:
+    if diff_y > 0:
         action = 's'
-    elif diff_y == -1:
+    elif diff_y < 0:
         action = 'n'
 
     return action
@@ -56,27 +71,58 @@ def create_actions_from_path(path):
     return actions
 
 
-def create_baseline(tiles):
+def check_special_movements(tiles, cost_graph, current_pos, current_stamina, direction, speed):
+    applicable_movement = True
+    total_movement_cost = 0
+
+    updated_stamina = current_stamina - STAMINA_COST[speed]
+    if updated_stamina < STAMINA_SAFETY and speed in ['medium', 'fast']:
+        return False, None, None, None
+
+    iteration_current_pos = current_pos
+    counter = 0
+    while True:
+        target_pos = (iteration_current_pos[0] + DIR_OFFSET[direction][0], iteration_current_pos[1] + DIR_OFFSET[direction][1])
+
+        if add_valid_edge(iteration_current_pos[1], iteration_current_pos[0], target_pos[1], target_pos[0], tiles):
+            target_tile_cost = cost_graph[iteration_current_pos][target_pos]['weight']
+            total_movement_cost += target_tile_cost
+
+            if 'weather' in tiles[target_pos[0]][target_pos[1]]:
+                updated_stamina -= 7
+
+                if updated_stamina < STAMINA_SAFETY and speed in ['medium', 'fast']:
+                    return False, None, None, None
+
+            counter += 1
+
+            if total_movement_cost > MOVEMENT_POINTS[speed]:
+                break
+
+            iteration_current_pos = target_pos
+
+        else:
+            applicable_movement = False
+            break
+
+    if applicable_movement:
+        total_movement_cost = total_movement_cost/counter
+
+    return applicable_movement, total_movement_cost, updated_stamina, target_pos
+
+
+def create_baseline(tiles, current_pos, current_stamina):
     import networkx as nx
 
-    nbr_tiles = 100
-    max_int = 100000
-    move_cost = {'water': 45, 'road': 31, 'trail': 40, 'grass': 50, 'rain': 7, 'forest': max_int,
-                 'start': max_int, 'win': 0}
-    stamina_cost = {'fast': 50, 'medium': 30, 'slow': 10, 'step': 15}
-    move_points = {'fast': 210, 'medium': 150, 'slow': 100}
+    cost_graph = nx.DiGraph()
 
-    G = nx.DiGraph()
-
-    for id_y in range(0, nbr_tiles):
-        for id_x in range(0, nbr_tiles):
+    for id_y in range(0, NBR_TILES):
+        for id_x in range(0, NBR_TILES):
 
             if tiles[id_y][id_x]['type'] == 'win':
                 goal = (id_y, id_x)
-            elif tiles[id_y][id_x]['type'] == 'start':
-                start = (id_y, id_x)
-
-            # TODO: Also check for streams and elevation
+            # elif tiles[id_y][id_x]['type'] == 'start':
+            #     start = (id_y, id_x)
 
             for y, x in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
                 target_x = id_x + x
@@ -87,10 +133,10 @@ def create_baseline(tiles):
                     target_tile = tiles[target_y][target_x]
                     direction = get_dir_from_tiles((id_y, id_x), (target_y, target_x))
 
-                    weight = move_cost[target_tile['type']]
+                    weight = MOVEMENT_COST[target_tile['type']]
 
                     if 'weather' in target_tile and target_tile['weather'] == 'rain':
-                        weight += move_cost['rain']
+                        weight += MOVEMENT_COST['rain']
 
                     if 'elevation' in target_tile:
                         elevation_dir = target_tile['elevation']['direction']
@@ -109,13 +155,47 @@ def create_baseline(tiles):
                         elif OPPOSITE_DIRS[direction] == waterstream_dir:
                             weight += waterstream_speed
 
-                    G.add_edge((id_y, id_x), (target_y, target_x), weight=weight)
+                    cost_graph.add_edge((id_y, id_x), (target_y, target_x), weight=weight)
+
+    movement = {}
+    for speed in ['fast', 'medium', 'slow']:
+        for direction in ['n', 'e', 's', 'w']:
+
+            applicable_movement, total_movement_cost, updated_stamina, target_pos = \
+                check_special_movements(tiles, cost_graph, current_pos, current_stamina, direction, speed)
+
+            if applicable_movement:
+
+                cost_graph.add_edge(current_pos, target_pos, weight=total_movement_cost)
+                movement[target_pos] = {'speed': speed, 'direction': direction}
+
+                if updated_stamina < 65:
+                    updated_stamina += 15
+                else:
+                    updated_stamina += 20
+
+                # Todo: fix recursive function
+
+                for speed in ['fast', 'medium', 'slow']:
+                    for direction in ['n', 'e', 's', 'w']:
+
+                        applicable_movement, total_movement_cost, total_stamina_cost, target_pos_2 = \
+                            check_special_movements(tiles, cost_graph, target_pos, updated_stamina, direction, speed)
+
+                        if applicable_movement:
+                            cost_graph.add_edge(target_pos, target_pos_2, weight=total_movement_cost)
 
     #best_path = nx.astar_path(G, start, goal)
-    best_path = nx.dijkstra_path(G, start, goal)
-    actions = create_actions_from_path(best_path)
+    best_path = nx.dijkstra_path(cost_graph, current_pos, goal)
+    visualize_path(tiles, best_path)
 
-    return best_path, actions
+    # print(best_path[0], best_path[1])
+    step_direction = get_dir_from_tiles(best_path[0], best_path[1])
+
+    if best_path[1] in movement:
+        return movement[best_path[1]]
+    else:
+        return {'speed': 'step', 'direction': step_direction}
 
 
 def visualize_path(tiles, path):
@@ -141,7 +221,7 @@ def visualize_path(tiles, path):
 
     for tile in path:
         plot_data[tile[0], tile[1]] = 4
-        if tiles[tile[0]][tile[1]]['type'] == 'forest':
+        if tiles[tile[0]][tile[1]]['type'] in ['forest', 'rocky_water']:
             plot_data[tile[0], tile[1]] = 5
             # print(f'x={tile[1]}, y={tile[0]}')
 
@@ -150,4 +230,5 @@ def visualize_path(tiles, path):
     bounds = [0, 1, 2, 3, 4, 5, 6]
     norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
     ax.imshow(plot_data, cmap=cmap, norm=norm)
-    plt.show()
+    # plt.show()
+    plt.savefig('tmp.png')

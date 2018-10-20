@@ -1,6 +1,7 @@
 from api import API
 import sys
 from graph import create_baseline, visualize_path
+import time
 
 _api_key = "c83a7b3d-0ca8-4060-9c5c-d7e5a3ae7297"
 # Specify your API-key number of players per game),
@@ -14,27 +15,42 @@ def solution(game_id):
     if initial_state["success"]:
         state = initial_state["gameState"]
         tiles = state["tileInfo"]
-        path, actions = create_baseline(tiles)
-        visualize_path(tiles, path)
-        exit()
+        #exit()
 
+        current_pos = (state['yourPlayer']['yPos'], state['yourPlayer']['xPos'])
+        current_tile_type = tiles[current_pos[0]][current_pos[1]]['type']
         idx = 0
-        while not state["gameStatus"] == "done":
+        while not current_tile_type == 'win':
+        # while not state["gameStatus"] == "done":
         #for action in actions:
             # print("Starting turn: " + str(state["turn"]))
+            start_time = time.time()
+            tiles = state["tileInfo"]
+            current_pos = (state['yourPlayer']['yPos'], state['yourPlayer']['xPos'])
 
-            action = actions[idx]
+            next_action = create_baseline(tiles, current_pos, state['yourPlayer']['stamina'])
 
-            print(f'\\x={state["yourPlayer"]["xPos"]}, y={state["yourPlayer"]["yPos"]}, action={action}, '
-                  f'state={state["yourPlayer"]["status"]}')
+            if next_action['speed'] == 'step':
+                response = _api.step(game_id, next_action['direction'])
+            else:
+                response = _api.make_move(game_id, next_action['direction'], next_action['speed'])
 
-            response = _api.step(game_id, action)
             state = response["gameState"]
 
-            if state['yourPlayer']['status'] == 'idle':
-                print(f'STUNNED')
-            else:
-                idx += 1
+            current_pos = (state['yourPlayer']['yPos'], state['yourPlayer']['xPos'])
+            current_tile_type = tiles[current_pos[0]][current_pos[1]]['type']
+
+            # TODO: Fix a last check if stamina < 0 => rest
+
+            if state['yourPlayer']['status'] in ['idle', 'exhausted', 'stunned']:
+                print(f'FUCK!!!!!')
+                print(f'x={state["yourPlayer"]["xPos"]}, y={state["yourPlayer"]["yPos"]}, '
+                      f'state={state["yourPlayer"]["status"]}, stamina={state["yourPlayer"]["stamina"]}, '
+                      f'current tile={current_tile_type}')
+                print('  ')
+                break
+
+            # print(f'time for iteration: {time.time() - start_time}')
 
         print("Finished!")
     else:
