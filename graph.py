@@ -119,8 +119,8 @@ def create_baseline(tiles, current_pos, current_stamina):
 
     for id_y in range(0, NBR_TILES):
         for id_x in range(0, NBR_TILES):
-
-            if tiles[id_y][id_x]['type'] == 'win':
+            current_tile = tiles[id_y][id_x]
+            if current_tile['type'] == 'win':
                 goal = (id_y, id_x)
             # elif tiles[id_y][id_x]['type'] == 'start':
             #     start = (id_y, id_x)
@@ -134,7 +134,8 @@ def create_baseline(tiles, current_pos, current_stamina):
                     target_tile = tiles[target_y][target_x]
                     direction = get_dir_from_tiles((id_y, id_x), (target_y, target_x))
 
-                    weight = MOVEMENT_COST[target_tile['type']]
+                    weight = MOVEMENT_COST[current_tile['type']]
+                    #weight = MOVEMENT_COST[target_tile['type']]
 
                     if 'weather' in target_tile and target_tile['weather'] == 'rain':
                         weight += MOVEMENT_COST['rain']
@@ -198,9 +199,9 @@ def create_baseline(tiles, current_pos, current_stamina):
     step_direction = get_dir_from_tiles(best_path[0], best_path[1])
 
     if best_path[1] in movement:
-        return movement[best_path[1]]
+        return movement[best_path[1]], best_path
     else:
-        return {'speed': 'step', 'direction': step_direction}
+        return {'speed': 'step', 'direction': step_direction}, best_path
 
 
 def visualize_path(tiles, path):
@@ -235,5 +236,5 @@ def visualize_path(tiles, path):
     bounds = [0, 1, 2, 3, 4, 5, 6]
     norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
     ax.imshow(plot_data, cmap=cmap, norm=norm)
-    # plt.show()
-    plt.savefig('tmp.png')
+    plt.show()
+    #plt.savefig('tmp.png')
