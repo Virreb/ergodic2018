@@ -12,7 +12,7 @@ DIR_OFFSET = {'n': (-1, 0),
 NBR_TILES = 100
 MAX_INT = 100000
 RAIN_PUNISHMENT = 10    # TODO: Optimize
-STAMINA_SAFETY = 20
+STAMINA_SAFETY = 1
 
 MOVEMENT_COST = {'water': 45, 'road': 31, 'trail': 40, 'grass': 50, 'rain': RAIN_PUNISHMENT, 'forest': MAX_INT,
              'start': MAX_INT, 'win': 0}
@@ -135,10 +135,10 @@ def create_baseline(tiles, current_pos, current_stamina):
                     direction = get_dir_from_tiles((id_y, id_x), (target_y, target_x))
 
                     weight = MOVEMENT_COST[current_tile['type']]
-                    #weight = MOVEMENT_COST[target_tile['type']]
+                    # weight = MOVEMENT_COST[target_tile['type']]
 
-                    if 'weather' in target_tile and target_tile['weather'] == 'rain':
-                        weight += MOVEMENT_COST['rain']
+                    # if 'weather' in target_tile and target_tile['weather'] == 'rain':
+                    #     weight += MOVEMENT_COST['rain']
 
                     if 'elevation' in target_tile:
                         elevation_dir = target_tile['elevation']['direction']
@@ -178,22 +178,16 @@ def create_baseline(tiles, current_pos, current_stamina):
                 else:
                     updated_stamina += 20
 
-                # Todo: fix recursive function
-
-                for speed in ['fast', 'medium', 'slow']:
-                    for direction in ['n', 'e', 's', 'w']:
-
-                        applicable_movement, total_movement_cost, total_stamina_cost, target_pos_2 = \
-                            check_special_movements(tiles, cost_graph, target_pos, updated_stamina, direction, speed)
-
-                        if applicable_movement:
-                            cost_graph.add_edge(target_pos, target_pos_2, weight=total_movement_cost)
-                            optimize_graph.add_edge(target_pos, target_pos_2, weight=1)
+                create_special_movement_connections(tiles, cost_graph, optimize_graph, current_pos, current_stamina,
+                                                    max_depth=3)
 
     #best_path = nx.astar_path(G, start, goal)
     #best_path = nx.dijkstra_path(cost_graph, current_pos, goal)
     best_path = nx.dijkstra_path(optimize_graph, current_pos, goal)
-    #visualize_path(tiles, best_path)
+    #  try:
+    #      visualize_path(tiles, best_path)
+    #  except:
+    #      pass
 
     # print(best_path[0], best_path[1])
 
@@ -232,8 +226,8 @@ def visualize_path(tiles, path):
     bounds = [0, 1, 2, 3, 4, 5, 6]
     norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
     ax.imshow(plot_data, cmap=cmap, norm=norm)
-    plt.show()
-    #plt.savefig('tmp.png')
+    #plt.show()
+    plt.savefig('tmp.png')
 
 
 def get_path_counts(tiles, path):
@@ -288,3 +282,26 @@ def get_next_action_from_path(path, movement, counts, current_stamina):
             return {'speed': 'rest'}
         else:
             return {'speed': 'step', 'direction': step_direction}
+
+
+def create_special_movement_connections(tiles, cost_graph, optimize_graph, current_pos,
+                                        current_stamina, max_depth=4):
+
+    for speed in ['fast', 'medium', 'slow']:
+        for direction in ['n', 'e', 's', 'w']:
+
+            applicable_movement, total_movement_cost, updated_stamina, target_pos = \
+                check_special_movements(tiles, cost_graph, current_pos, current_stamina, direction, speed)
+
+            if applicable_movement:
+                cost_graph.add_edge(current_pos, target_pos, weight=total_movement_cost)
+                optimize_graph.add_edge(current_pos, target_pos, weight=1)
+
+                if updated_stamina < 65:
+                    updated_stamina += 15*0.7
+                else:
+                    updated_stamina += 20*0.7
+
+                if max_depth > 0:
+                    create_special_movement_connections(tiles, cost_graph, optimize_graph, target_pos, updated_stamina,
+                                                        max_depth-1)

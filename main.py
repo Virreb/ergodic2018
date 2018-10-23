@@ -17,7 +17,7 @@ def solve(game_id):
         print('Solving')
 
         # while not current_tile_type == 'win':
-        while not state["gameStatus"] == "done":
+        while not state["gameStatus"] == "finished":
 
             start_time = time.time()
             tiles = state["tileInfo"]
@@ -26,10 +26,15 @@ def solve(game_id):
 
             best_path, movement = create_baseline(tiles, current_pos, current_stamina)
             counts = get_path_counts(tiles, best_path)
-            next_action = get_next_action_from_path(best_path, movement, counts, current_stamina)
+            try:
+                next_action = get_next_action_from_path(best_path, movement, counts, current_stamina)
+            except IndexError:
+                print(state['gameStatus'])
+                print(state['yourPlayer'])
+                print(current_tile_type)
 
             if next_action['speed'] == 'rest':
-                response = -_api.rest(game_id)
+                response = _api.rest(game_id)
             elif next_action['speed'] == 'step':
                 response = _api.step(game_id, next_action['direction'])
             else:
@@ -47,11 +52,13 @@ def solve(game_id):
                       f'current tile={current_tile_type}')
                 print('  ')
                 #visualize_path(tiles, best_path)
-                break
+                # break
 
-            # print(f'time for iteration: {time.time() - start_time}')
+            print(current_stamina)
+            print(f'time for iteration {state["turn"]}: {time.time() - start_time}')
+            print('------')
 
-        print(f'Finished! in {state["gameState"]["turn"]} turns')
+        print(f'Finished! in {state["turn"]} turns')
     else:
         print(initial_state["message"])
 
