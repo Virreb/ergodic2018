@@ -300,7 +300,7 @@ def create_special_movement_connections(tiles, cost_graph, optimize_graph, curre
                 if updated_stamina < 65:
                     updated_stamina += 15*0.7
                 else:
-                    updated_stamina += 20*0.7
+                    updated_stamina += 20*0.7   # TODO: CHECK THIS SCIENTIFIC LIMIT
 
                 if max_depth > 0:
                     create_special_movement_connections(tiles, cost_graph, optimize_graph, target_pos, updated_stamina,

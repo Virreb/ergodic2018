@@ -2,6 +2,7 @@ from api import API
 import sys
 from graph import create_baseline, visualize_path, get_path_counts, get_next_action_from_path
 import time
+from powerups import check_for_applicable_powerups
 
 _api_key = "c83a7b3d-0ca8-4060-9c5c-d7e5a3ae7297"
 # Specify your API-key number of players per game),
@@ -20,12 +21,29 @@ def solve(game_id):
         while not state["gameStatus"] == "finished":
 
             start_time = time.time()
-            tiles = state["tileInfo"]
-            current_pos = (state['yourPlayer']['yPos'], state['yourPlayer']['xPos'])
-            current_stamina = state['yourPlayer']['stamina']
 
+            # STATE
+            tiles = state["tileInfo"]
+            your_player = state['yourPlayer']
+            current_pos = (your_player['yPos'], your_player['xPos'])
+            current_stamina = your_player['stamina']
+            powerup_inventory = your_player['powerupInventory']
+            active_powerups = your_player['activePowerups']
+
+            # PATH
             best_path, movement = create_baseline(tiles, current_pos, current_stamina)
             counts = get_path_counts(tiles, best_path)
+
+            # POWERUPS
+            powerups_to_activate, powerups_to_drop = check_for_applicable_powerups(powerup_inventory,
+                                                                                   active_powerups, counts)
+            for powerup in powerups_to_activate:
+                _api.use_powerup(game_id, powerup)
+
+            for powerup in powerups_to_drop:
+                _api.drop_powerup(game_id, powerup)
+
+            # CREATE ACTIONS
             try:
                 next_action = get_next_action_from_path(best_path, movement, counts, current_stamina)
             except IndexError:
