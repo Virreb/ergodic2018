@@ -28,9 +28,11 @@ def solution(game_id):
             tiles = state["tileInfo"]
             current_pos = (state['yourPlayer']['yPos'], state['yourPlayer']['xPos'])
 
-            next_action, best_path = create_baseline(tiles, current_pos, state['yourPlayer']['stamina'])
+            next_action = create_baseline(tiles, current_pos, state['yourPlayer']['stamina'])
 
-            if next_action['speed'] == 'step':
+            if next_action == 'rest':
+                response = -_api.rest(game_id)
+            elif next_action['speed'] == 'step':
                 response = _api.step(game_id, next_action['direction'])
             else:
                 response = _api.make_move(game_id, next_action['direction'], next_action['speed'])
@@ -48,7 +50,7 @@ def solution(game_id):
                       f'state={state["yourPlayer"]["status"]}, stamina={state["yourPlayer"]["stamina"]}, '
                       f'current tile={current_tile_type}')
                 print('  ')
-                visualize_path(tiles, best_path)
+                #visualize_path(tiles, best_path)
                 break
 
             idx += 1

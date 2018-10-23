@@ -197,11 +197,17 @@ def create_baseline(tiles, current_pos, current_stamina):
 
     # print(best_path[0], best_path[1])
     step_direction = get_dir_from_tiles(best_path[0], best_path[1])
-
+    to_tile =  tiles[best_path[0][0]][best_path[0][1]]
+    is_rain = 'weather' in to_tile and to_tile['weather'] == 'rain'
     if best_path[1] in movement:
-        return movement[best_path[1]], best_path
+        if current_stamina - (10 + 7*is_rain) < 0:
+            return 'rest'
+        else:
+            return movement[best_path[1]]
     else:
-        return {'speed': 'step', 'direction': step_direction}, best_path
+        if current_stamina - (15 + 7 * is_rain) < 0:
+            return 'rest'
+        return {'speed': 'step', 'direction': step_direction}
 
 
 def visualize_path(tiles, path):
