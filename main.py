@@ -46,10 +46,9 @@ def solve(game_id):
                 visualize_path(tiles, best_path)
                 break
 
-            idx += 1
             # print(f'time for iteration: {time.time() - start_time}')
 
-        print("Finished! in %d iterations" %idx)
+        print(f'Finished! in {state["gameState"]["turn"]} turns')
     else:
         print(initial_state["message"])
 
@@ -81,21 +80,6 @@ def ready_game(game_id=None, end_previous_game=True):
     else:
         print(f'Could not ready up for {game_id}')
 
-
-def main():
-    game_id = "8366ab02-6d42-48c7-bf7c-d7b205968dd6"
-    # If no gameID is specified as parameter to the script,
-    # Initiate a game with 1 player on the standard map
-    if len(sys.argv) == 1:
-        _api.end_previous_games_if_any()  # Can only have 2 active games at once. This will end any previous ones.
-        game_id = _api.init_game()
-        joined_game = _api.join_game(game_id)
-        readied_game = _api.try_ready_for_game(game_id)
-        if readied_game is not None:
-            print("Joined and readied! Solving...")
-            solve(game_id)
-    else:
-        game_id = sys.argv[1]
 
 current_game_id = None
 # game_id = ''
