@@ -1,6 +1,6 @@
 from api import API
 import sys
-from graph import create_baseline, visualize_path
+from graph import create_baseline, visualize_path, get_path_counts, get_next_action_from_path
 import time
 
 _api_key = "c83a7b3d-0ca8-4060-9c5c-d7e5a3ae7297"
@@ -22,10 +22,13 @@ def solve(game_id):
             start_time = time.time()
             tiles = state["tileInfo"]
             current_pos = (state['yourPlayer']['yPos'], state['yourPlayer']['xPos'])
+            current_stamina = state['yourPlayer']['stamina']
 
-            next_action = create_baseline(tiles, current_pos, state['yourPlayer']['stamina'])
+            best_path, movement = create_baseline(tiles, current_pos, current_stamina)
+            counts = get_path_counts(tiles, best_path)
+            next_action = get_next_action_from_path(best_path, movement, counts, current_stamina)
 
-            if next_action == 'rest':
+            if next_action['speed'] == 'rest':
                 response = -_api.rest(game_id)
             elif next_action['speed'] == 'step':
                 response = _api.step(game_id, next_action['direction'])
@@ -34,11 +37,9 @@ def solve(game_id):
 
             state = response["gameState"]
 
+            # debug
             current_pos = (state['yourPlayer']['yPos'], state['yourPlayer']['xPos'])
             current_tile_type = tiles[current_pos[0]][current_pos[1]]['type']
-
-            # TODO: Fix a last check if stamina < 0 => rest
-
             if state['yourPlayer']['status'] in ['idle', 'exhausted', 'stunned']:
                 print(f'FUCK!!!!!')
                 print(f'x={state["yourPlayer"]["xPos"]}, y={state["yourPlayer"]["yPos"]}, '

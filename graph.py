@@ -196,18 +196,8 @@ def create_baseline(tiles, current_pos, current_stamina):
     #visualize_path(tiles, best_path)
 
     # print(best_path[0], best_path[1])
-    step_direction = get_dir_from_tiles(best_path[0], best_path[1])
-    to_tile =  tiles[best_path[0][0]][best_path[0][1]]
-    is_rain = 'weather' in to_tile and to_tile['weather'] == 'rain'
-    if best_path[1] in movement:
-        if current_stamina - (10 + 7*is_rain) < 0:
-            return 'rest'
-        else:
-            return movement[best_path[1]]
-    else:
-        if current_stamina - (15 + 7 * is_rain) < 0:
-            return 'rest'
-        return {'speed': 'step', 'direction': step_direction}
+
+    return best_path, movement
 
 
 def visualize_path(tiles, path):
@@ -244,3 +234,57 @@ def visualize_path(tiles, path):
     ax.imshow(plot_data, cmap=cmap, norm=norm)
     plt.show()
     #plt.savefig('tmp.png')
+
+
+def get_path_counts(tiles, path):
+
+    init = {'water': 0, 'trail': 0, 'road': 0, 'win': 0, 'start': 0, 'rain': 0, 'grass': 0}
+    counts = {'next_all': init.copy(), 'next_ten': init.copy(), 'next_one': init.copy(), 'to': init.copy()}
+
+    for idx, pos in enumerate(path):
+        y, x = pos[0], pos[1]
+        tile_type = tiles[y][x]['type']
+
+        is_rain = 'weather' in tiles[y][x] and tiles[y][x]['weather'] == 'rain'
+
+        if is_rain and counts['to']['rain'] == 0:
+            counts['to']['rain'] = idx
+
+        if idx == 0:
+            current_type = tile_type
+        else:
+            counts['next_all'][tile_type] += 1
+
+            if idx == 1:
+                counts['next_one'][tile_type] += 1
+
+                if is_rain and counts['next_one']['rain'] == 0:
+                    counts['next_one']['rain'] += 1
+
+            if idx <= 10:
+                counts['next_ten'][tile_type] += 1
+
+                if is_rain and counts['next_ten']['rain'] == 0:
+                    counts['next_ten']['rain'] = idx
+
+            if current_type != tile_type and counts['to'][tile_type] == 0:
+                counts['to'][tile_type] = idx
+
+    return counts
+
+
+def get_next_action_from_path(path, movement, counts, current_stamina):
+
+    step_direction = get_dir_from_tiles(path[0], path[1])
+    is_rain = counts['next_one']['rain']
+
+    if path[1] in movement:
+        if current_stamina - (10 + 7*is_rain) < 0:
+            return {'speed': 'rest'}
+        else:
+            return movement[path[1]]
+    else:
+        if current_stamina - (15 + 7 * is_rain) < 0:
+            return {'speed': 'rest'}
+        else:
+            return {'speed': 'step', 'direction': step_direction}
