@@ -31,7 +31,7 @@ def solve(game_id):
             active_powerups = your_player['activePowerups']
 
             # PATH
-            best_path, movement = create_baseline(tiles, current_pos, current_stamina)
+            best_path, movement = create_baseline(tiles, current_pos, current_stamina, active_powerups)
             counts = get_path_counts(tiles, best_path)
 
             # POWERUPS

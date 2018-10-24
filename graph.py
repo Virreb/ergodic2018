@@ -111,7 +111,7 @@ def check_special_movements(tiles, cost_graph, current_pos, current_stamina, dir
     return applicable_movement, total_movement_cost, updated_stamina, target_pos
 
 
-def create_baseline(tiles, current_pos, current_stamina):
+def create_baseline(tiles, current_pos, current_stamina, active_powerups):
     import networkx as nx
 
     cost_graph = nx.DiGraph()
@@ -140,7 +140,7 @@ def create_baseline(tiles, current_pos, current_stamina):
                     # if 'weather' in target_tile and target_tile['weather'] == 'rain':
                     #     weight += MOVEMENT_COST['rain']
 
-                    if 'elevation' in target_tile:
+                    if 'elevation' in target_tile and 'Spikeshoes' not in active_powerups:
                         elevation_dir = target_tile['elevation']['direction']
                         elevation_amount = target_tile['elevation']['amount']
 
@@ -148,7 +148,7 @@ def create_baseline(tiles, current_pos, current_stamina):
                             weight -= elevation_amount
                         elif OPPOSITE_DIRS[direction] == elevation_dir:
                             weight += elevation_amount
-                    elif 'waterstream' in target_tile:
+                    elif 'waterstream' in target_tile and 'Cyklop' not in active_powerups:
                         waterstream_dir = target_tile['waterstream']['direction']
                         waterstream_speed = target_tile['waterstream']['speed']
 
