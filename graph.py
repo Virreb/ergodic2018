@@ -179,7 +179,7 @@ def create_baseline(tiles, current_pos, current_stamina):
                     updated_stamina += 20
 
                 create_special_movement_connections(tiles, cost_graph, optimize_graph, current_pos, current_stamina,
-                                                    max_depth=3)
+                                                    max_depth=1)
 
     #best_path = nx.astar_path(G, start, goal)
     #best_path = nx.dijkstra_path(cost_graph, current_pos, goal)

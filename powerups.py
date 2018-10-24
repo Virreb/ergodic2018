@@ -1,7 +1,7 @@
 USE_INSTANT_POWERUPS = ['RestoreStamina', 'InvertStreams', 'Energyboost', 'Potion', 'Helmet', 'StaminaSale']
 TILE_POWERUPS = {'water': ['Flippers', 'Cyklop'],
                  'trail': ['Shoes', 'Spikeshoes'],
-                 'road': ['Cycletire', 'BicycleDandlebar'],
+                 'road': ['Cycletire', 'BicycleHandlebar'],
                  'rain': ['Umbrella', 'RemoveCloud']
                  }
 
