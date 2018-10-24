@@ -134,7 +134,16 @@ def create_baseline(tiles, current_pos, current_stamina, active_powerups):
                     target_tile = tiles[target_y][target_x]
                     direction = get_dir_from_tiles((id_y, id_x), (target_y, target_x))
 
-                    weight = MOVEMENT_COST[current_tile['type']]
+                    # adjust weights
+                    weight_reduction = 1
+                    if current_tile['type'] == 'road' and 'Cycletire' in active_powerups:
+                        weight_reduction *= 0.75
+                    elif current_tile['type'] == 'water' and 'Flippers' in active_powerups:
+                        weight_reduction *= 0.75
+                    elif current_tile['type'] == 'trail' and 'Shoes' in active_powerups:
+                        weight_reduction *= 0.75
+
+                    weight = weight_reduction * MOVEMENT_COST[current_tile['type']]
                     # weight = MOVEMENT_COST[target_tile['type']]
 
                     # if 'weather' in target_tile and target_tile['weather'] == 'rain':
