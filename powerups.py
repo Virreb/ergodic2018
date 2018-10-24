@@ -21,8 +21,10 @@ def check_for_applicable_powerups(powerup_inventory, active_powerups, counts):
         # TILE POWERUPS
         for tile_type in ['water', 'trail', 'road']:
             if powerup in TILE_POWERUPS[tile_type]:
-                if counts['next_all'][tile_type] == 0:
-                    powerups_to_drop.append(powerup)
+                if counts['next_all'][tile_type] == 0 and len(powerup_inventory) == 3:
+                    # powerups_to_drop.append(powerup)
+                    powerups_to_activate.append(powerup)
+                    # TODO: Maybe better to use the powerup instead just in case? Same cost in time
 
                 if counts['next_ten'][tile_type] > 0 and powerup not in active_powerups_names:
                     powerups_to_activate.append(powerup)

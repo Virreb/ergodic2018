@@ -11,11 +11,11 @@ DIR_OFFSET = {'n': (-1, 0),
 
 NBR_TILES = 100
 MAX_INT = 100000
-RAIN_PUNISHMENT = 10    # TODO: Optimize
+RAIN_PUNISHMENT = 10    # TODO: Optimize, not used?
 STAMINA_SAFETY = 1
 
 MOVEMENT_COST = {'water': 45, 'road': 31, 'trail': 40, 'grass': 50, 'rain': RAIN_PUNISHMENT, 'forest': MAX_INT,
-             'start': MAX_INT, 'win': 0}
+                 'start': 30, 'win': 30}    # TODO: changed from max_int to 30 and 0 to 30
 STAMINA_COST = {'fast': 50, 'medium': 30, 'slow': 10, 'step': 15}
 MOVEMENT_POINTS = {'fast': 210, 'medium': 150, 'slow': 100}
 
@@ -34,10 +34,10 @@ def add_valid_edge(id_x, id_y, target_x, target_y, tiles):
     elif id_y == 99 and target_y == 100:
         return False
 
-    if tiles[target_y][target_x]['type'] in ['forest', 'rocky_water']:  # Todo: Check rocky water
+    if tiles[target_y][target_x]['type'] in ['forest', 'rockywater']:  # Todo: Check rocky water
         return False
 
-    if tiles[id_y][id_x]['type'] in ['forest', 'rocky_water']:  # Todo: Check rocky water
+    if tiles[id_y][id_x]['type'] in ['forest', 'rockywater']:  # Todo: Check rocky water
         return False
 
     return True
