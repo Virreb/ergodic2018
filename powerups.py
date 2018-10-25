@@ -1,9 +1,11 @@
-USE_INSTANT_POWERUPS = ['RestoreStamina', 'Energyboost', 'Potion', 'Helmet', 'StaminaSale']
-TILE_POWERUPS = {'water': ['Flippers', 'Cyklop'],
-                 'trail': ['Shoes', 'Spikeshoes'],
-                 'road': ['Cycletire', 'BicycleHandlebar'],
+USE_INSTANT_POWERUPS = ['RestoreStamina', 'Energyboost', 'Potion', 'StaminaSale']
+TILE_POWERUPS = {'water': ['Flippers'],
+                 'trail': ['Shoes'],
+                 'road': ['Cycletire'],
                  'rain': ['Umbrella', 'RemoveCloud']
                  }
+
+NOT_PRIO_POWERUPS = ['Spikeshoes', 'BicycleHandlebar', 'Cyklop', 'Helmet', 'InvertStreams']
 
 
 def check_for_applicable_powerups(powerup_inventory, active_powerups, counts):
@@ -12,6 +14,10 @@ def check_for_applicable_powerups(powerup_inventory, active_powerups, counts):
     powerups_to_activate = []
 
     for powerup in powerup_inventory:
+
+        # NOT PRIO
+        if len(powerup_inventory) == 3 and powerup in NOT_PRIO_POWERUPS:
+            powerups_to_activate.append(powerup)
 
         # INSTANT POWERUPS
         if powerup in USE_INSTANT_POWERUPS:
@@ -25,7 +31,7 @@ def check_for_applicable_powerups(powerup_inventory, active_powerups, counts):
                         and counts['next_all']['win'] > 10:
                     powerups_to_activate.append(powerup)
 
-                if counts['next_ten'][tile_type] > 0 and powerup not in active_powerups_names:
+                if counts['next_ten'][tile_type] > 4 and powerup not in active_powerups_names:
                     powerups_to_activate.append(powerup)
 
         # RAIN POWERUPS
@@ -34,10 +40,6 @@ def check_for_applicable_powerups(powerup_inventory, active_powerups, counts):
 
         if powerup == 'Umbrella' and 'RemoveCloud' not in powerups_to_activate \
                 and (counts['next_ten']['rain'] > 4 or counts['next_one']['rain'] == 1):
-            powerups_to_activate.append(powerup)
-
-        # INVERT STREAMS
-        if powerup == 'InvertStreams' and (counts['next_ten']['water'] > 5 or len(powerup_inventory) == 3):
             powerups_to_activate.append(powerup)
 
     return powerups_to_activate

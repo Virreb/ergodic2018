@@ -6,11 +6,8 @@ from powerups import check_for_applicable_powerups
 _api_key = "c83a7b3d-0ca8-4060-9c5c-d7e5a3ae7297"
 # Specify your API-key number of players per game),
 # mapname, and number of waterstreams/elevations/powerups here
-_api = API(_api_key, 1, "kalmarmap", 10, 10, 1)
+_api = API(_api_key, 1, "zurichmap", 10, 10, 1)
 
-# TODO: CHECK WATERSTREAM AND ELEVATION SIDEWAYS EFFECT
-# TODO: Bicyclehandlebar etc, only affects sideways deviation! (ej motlut)
-# TODO: DURATION POWERUPS STACK!!! Förutom typ cyclop, onödigt att aktivera om den redan är aktiv
 # TODO: Endast en power-up per turn, prioriteringslista per tile?
 
 # TODO: Check if passing a powerup in the next move, should we drop one existing powerup? Create rangordningslista per tile type
@@ -47,8 +44,9 @@ def solve(game_id):
 
             # TODO: Is this check ok? Should only drop one powerup aswel per turn
             if len(powerups_to_activate) > 0:
-                for powerup in powerups_to_activate:
-                    response = _api.use_powerup(game_id, powerup)
+                # for powerup in powerups_to_activate
+                powerup = powerups_to_activate[0]   # only use one
+                response = _api.use_powerup(game_id, powerup)
             else:
 
                 # CREATE ACTIONS
