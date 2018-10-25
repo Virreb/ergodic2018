@@ -229,7 +229,7 @@ def create_baseline(tiles, current_pos, current_stamina, active_powerups):
                     updated_stamina += 20
 
                 create_special_movement_connections(tiles, cost_graph, optimize_graph, current_pos, current_stamina,
-                                                    active_powerups, max_depth=1)
+                                                    active_powerups, max_depth=2)
 
     #best_path = nx.astar_path(G, start, goal)
     #best_path = nx.dijkstra_path(cost_graph, current_pos, goal)
@@ -344,7 +344,7 @@ def create_special_movement_connections(tiles, cost_graph, optimize_graph, curre
                 check_special_movements(tiles, cost_graph, current_pos, current_stamina,
                                         direction, speed, active_powerups)
 
-            if applicable_movement:
+            if applicable_movement and not cost_graph.has_edge(current_pos, target_pos):
                 cost_graph.add_edge(current_pos, target_pos, weight=total_movement_cost)
                 optimize_graph.add_edge(current_pos, target_pos, weight=1)
 
