@@ -344,7 +344,7 @@ def create_special_movement_connections(tiles, cost_graph, optimize_graph, curre
                 check_special_movements(tiles, cost_graph, current_pos, current_stamina,
                                         direction, speed, active_powerups)
 
-            if applicable_movement and not cost_graph.has_edge(current_pos, target_pos):
+            if applicable_movement:  # and not cost_graph.has_edge(current_pos, target_pos): # TODO: CHECK
                 cost_graph.add_edge(current_pos, target_pos, weight=total_movement_cost)
                 optimize_graph.add_edge(current_pos, target_pos, weight=1)
 
