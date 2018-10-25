@@ -71,9 +71,11 @@ def create_actions_from_path(path):
     return actions
 
 
-def check_special_movements(tiles, cost_graph, current_pos, current_stamina, direction, speed):
+def check_special_movements(tiles, cost_graph, current_pos, current_stamina, direction, speed, active_powerups):
     applicable_movement = True
     total_movement_cost = 0
+
+    potion_active = 'Potion' in active_powerups
 
     updated_stamina = current_stamina - STAMINA_COST[speed]
     if updated_stamina < STAMINA_SAFETY and speed in ['medium', 'fast']:
@@ -96,7 +98,7 @@ def check_special_movements(tiles, cost_graph, current_pos, current_stamina, dir
 
             counter += 1
 
-            if total_movement_cost > MOVEMENT_POINTS[speed]:
+            if total_movement_cost > (MOVEMENT_POINTS[speed] * (1 + 0.5*wq)):
                 break
 
             iteration_current_pos = target_pos
@@ -174,7 +176,8 @@ def create_baseline(tiles, current_pos, current_stamina, active_powerups):
         for direction in ['n', 'e', 's', 'w']:
 
             applicable_movement, total_movement_cost, updated_stamina, target_pos = \
-                check_special_movements(tiles, cost_graph, current_pos, current_stamina, direction, speed)
+                check_special_movements(tiles, cost_graph, current_pos, current_stamina,
+                                        direction, speed, active_powerups)
 
             if applicable_movement:
 
@@ -188,7 +191,7 @@ def create_baseline(tiles, current_pos, current_stamina, active_powerups):
                     updated_stamina += 20
 
                 create_special_movement_connections(tiles, cost_graph, optimize_graph, current_pos, current_stamina,
-                                                    max_depth=1)
+                                                    active_powerups, max_depth=1)
 
     #best_path = nx.astar_path(G, start, goal)
     #best_path = nx.dijkstra_path(cost_graph, current_pos, goal)
@@ -294,13 +297,14 @@ def get_next_action_from_path(path, movement, counts, current_stamina):
 
 
 def create_special_movement_connections(tiles, cost_graph, optimize_graph, current_pos,
-                                        current_stamina, max_depth=4):
+                                        current_stamina, active_powerups, max_depth=4):
 
     for speed in ['fast', 'medium', 'slow']:
         for direction in ['n', 'e', 's', 'w']:
 
             applicable_movement, total_movement_cost, updated_stamina, target_pos = \
-                check_special_movements(tiles, cost_graph, current_pos, current_stamina, direction, speed)
+                check_special_movements(tiles, cost_graph, current_pos, current_stamina,
+                                        direction, speed, active_powerups)
 
             if applicable_movement:
                 cost_graph.add_edge(current_pos, target_pos, weight=total_movement_cost)
@@ -313,4 +317,4 @@ def create_special_movement_connections(tiles, cost_graph, optimize_graph, curre
 
                 if max_depth > 0:
                     create_special_movement_connections(tiles, cost_graph, optimize_graph, target_pos, updated_stamina,
-                                                        max_depth-1)
+                                                        active_powerups, max_depth-1)
