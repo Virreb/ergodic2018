@@ -4,6 +4,11 @@ OPPOSITE_DIRS = {'w': 'e',
                  'n': 's',
                  's': 'n'}
 
+PERPENDICULAR_DIRS = {'w': ['n', 's'],
+                      'e': ['n', 's'],
+                      'n': ['w', 'e'],
+                      's': ['w', 'e']}
+
 DIR_OFFSET = {'n': (-1, 0),
               's': (1, 0),
               'w': (0, -1),
@@ -74,6 +79,7 @@ def create_actions_from_path(path):
 def check_special_movements(tiles, cost_graph, current_pos, current_stamina, direction, speed, active_powerups):
     applicable_movement = True
     total_movement_cost = 0
+    total_deviation = {'w': 0, 'e': 0, 'n': 0, 's': 0}
 
     potion_active = 'Potion' in active_powerups
 
@@ -82,9 +88,18 @@ def check_special_movements(tiles, cost_graph, current_pos, current_stamina, dir
         return False, None, None, None
 
     iteration_current_pos = current_pos
-    counter = 0
     while True:
         target_pos = (iteration_current_pos[0] + DIR_OFFSET[direction][0], iteration_current_pos[1] + DIR_OFFSET[direction][1])
+        target_tile = tiles[target_pos[0]][target_pos[1]]
+
+        if 'elevation' in target_tile and target_tile['elevation']['direction'] in PERPENDICULAR_DIRS[direction]:
+            if (target_tile['type'] == 'trail' and 'Spikeshoes' not in active_powerups) or \
+                    (target_tile['type'] == 'road' and 'BicycleHandlebar' not in active_powerups):
+                total_deviation[target_tile['elevation']['direction']] += target_tile['elevation']['amount']
+
+        elif 'waterstream' in target_tile and target_tile['waterstream']['direction'] in PERPENDICULAR_DIRS[direction]:
+            if target_tile['type'] == 'water' and 'Cyklop' not in active_powerups:
+                total_deviation[target_tile['waterstream']['direction']] += target_tile['waterstream']['speed']
 
         if add_valid_edge(iteration_current_pos[1], iteration_current_pos[0], target_pos[1], target_pos[0], tiles):
             target_tile_cost = cost_graph[iteration_current_pos][target_pos]['weight']
@@ -96,10 +111,22 @@ def check_special_movements(tiles, cost_graph, current_pos, current_stamina, dir
                 if updated_stamina < STAMINA_SAFETY and speed in ['medium', 'fast']:
                     return False, None, None, None
 
-            counter += 1
-
             if total_movement_cost > (MOVEMENT_POINTS[speed] * (1 + 0.5*potion_active)):
                 break
+
+            for dev_dir in total_deviation.keys():
+                if total_deviation[dev_dir] > MOVEMENT_COST[target_tile['type']]:
+                    total_deviation[dev_dir] -= MOVEMENT_COST[target_tile['type']]  # made one step
+
+                    if 'waterstream' in target_tile:
+                        drifted_pos = (target_pos[0] + DIR_OFFSET[dev_dir][0], target_pos[1] + DIR_OFFSET[dev_dir][1])
+                    else:
+                        drifted_pos = (target_pos[0] - DIR_OFFSET[dev_dir][0], target_pos[1] - DIR_OFFSET[dev_dir][1])
+
+                    if add_valid_edge(iteration_current_pos[1], iteration_current_pos[0],
+                                      drifted_pos[1], drifted_pos[0], tiles):
+
+                        target_pos = drifted_pos
 
             iteration_current_pos = target_pos
 
@@ -108,7 +135,7 @@ def check_special_movements(tiles, cost_graph, current_pos, current_stamina, dir
             break
 
     if applicable_movement:
-        total_movement_cost = total_movement_cost/counter
+        total_movement_cost = total_movement_cost
 
     return applicable_movement, total_movement_cost, updated_stamina, target_pos
 
@@ -151,15 +178,16 @@ def create_baseline(tiles, current_pos, current_stamina, active_powerups):
                     # if 'weather' in target_tile and target_tile['weather'] == 'rain':
                     #     weight += MOVEMENT_COST['rain']
 
-                    if 'elevation' in target_tile and 'Spikeshoes' not in active_powerups:
+                    if 'elevation' in target_tile:
                         elevation_dir = target_tile['elevation']['direction']
                         elevation_amount = target_tile['elevation']['amount']
 
                         if direction == elevation_dir:
-                            weight -= elevation_amount
-                        elif OPPOSITE_DIRS[direction] == elevation_dir:
                             weight += elevation_amount
-                    elif 'waterstream' in target_tile and 'Cyklop' not in active_powerups:
+                        elif OPPOSITE_DIRS[direction] == elevation_dir:
+                            weight -= elevation_amount
+
+                    elif 'waterstream' in target_tile:
                         waterstream_dir = target_tile['waterstream']['direction']
                         waterstream_speed = target_tile['waterstream']['speed']
 

@@ -6,7 +6,7 @@ from powerups import check_for_applicable_powerups
 _api_key = "c83a7b3d-0ca8-4060-9c5c-d7e5a3ae7297"
 # Specify your API-key number of players per game),
 # mapname, and number of waterstreams/elevations/powerups here
-_api = API(_api_key, 1, "standardmap", 10, 10, 1)
+_api = API(_api_key, 1, "kalmarmap", 10, 10, 1)
 
 # TODO: CHECK WATERSTREAM AND ELEVATION SIDEWAYS EFFECT
 # TODO: Bicyclehandlebar etc, only affects sideways deviation! (ej motlut)
