@@ -11,11 +11,7 @@ _api = API(_api_key, 1, "standardmap", 10, 10, 1)
 # TODO: CHECK WATERSTREAM AND ELEVATION SIDEWAYS EFFECT
 # TODO: Bicyclehandlebar etc, only affects sideways deviation! (ej motlut)
 # TODO: DURATION POWERUPS STACK!!! Förutom typ cyclop, onödigt att aktivera om den redan är aktiv
-# TODO: Man påverkas endast av tile man försöker gå till, tror det är fixat
 # TODO: Endast en power-up per turn, prioriteringslista per tile?
-# TODO: Endast power up ELLER move per turn, kolla så att turns har ökat?
-# TODO: In multiplayer, check if number of turns has increased, then its a new turn to make next move
-# TODO: Use invert streams directly if water ahead (or opponent in water), or if inventory is full
 
 # TODO: Check if passing a powerup in the next move, should we drop one existing powerup? Create rangordningslista per tile type
 # TODO: Check if valuable to take a detour in order to fetch a powerup
@@ -47,25 +43,16 @@ def solve(game_id):
             counts = get_path_counts(tiles, best_path)
 
             # POWERUPS
-            powerups_to_activate, powerups_to_drop = check_for_applicable_powerups(powerup_inventory,
-                                                                                   active_powerups, counts)
+            powerups_to_activate = check_for_applicable_powerups(powerup_inventory, active_powerups, counts)
 
             # TODO: Is this check ok? Should only drop one powerup aswel per turn
-            if len(powerups_to_activate) > 0 or len(powerups_to_drop) > 0:
+            if len(powerups_to_activate) > 0:
                 for powerup in powerups_to_activate:
                     response = _api.use_powerup(game_id, powerup)
-
-                for powerup in powerups_to_drop:
-                    response = _api.drop_powerup(game_id, powerup)
             else:
 
                 # CREATE ACTIONS
-                try:
-                    next_action = get_next_action_from_path(best_path, movement, counts, current_stamina)
-                except IndexError:
-                    print(state['gameStatus'])
-                    print(state['yourPlayer'])
-                    print(current_tile_type)
+                next_action = get_next_action_from_path(best_path, movement, counts, current_stamina)
 
                 if next_action['speed'] == 'rest':
                     response = _api.rest(game_id)
