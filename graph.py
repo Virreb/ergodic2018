@@ -98,7 +98,7 @@ def check_special_movements(tiles, cost_graph, current_pos, current_stamina, dir
 
             counter += 1
 
-            if total_movement_cost > (MOVEMENT_POINTS[speed] * (1 + 0.5*wq)):
+            if total_movement_cost > (MOVEMENT_POINTS[speed] * (1 + 0.5*potion_active)):
                 break
 
             iteration_current_pos = target_pos
