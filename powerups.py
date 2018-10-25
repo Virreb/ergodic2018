@@ -1,4 +1,4 @@
-USE_INSTANT_POWERUPS = ['RestoreStamina', 'InvertStreams', 'Energyboost', 'Potion', 'Helmet', 'StaminaSale']
+USE_INSTANT_POWERUPS = ['RestoreStamina', 'Energyboost', 'Potion', 'Helmet', 'StaminaSale']
 TILE_POWERUPS = {'water': ['Flippers', 'Cyklop'],
                  'trail': ['Shoes', 'Spikeshoes'],
                  'road': ['Cycletire', 'BicycleHandlebar'],
@@ -9,7 +9,7 @@ TILE_POWERUPS = {'water': ['Flippers', 'Cyklop'],
 def check_for_applicable_powerups(powerup_inventory, active_powerups, counts):
 
     active_powerups_names = [d['name'] for d in active_powerups]
-    powerups_to_activate, powerups_to_drop = [], []
+    powerups_to_activate = []
 
     for powerup in powerup_inventory:
 
@@ -21,8 +21,9 @@ def check_for_applicable_powerups(powerup_inventory, active_powerups, counts):
         # TILE POWERUPS
         for tile_type in ['water', 'trail', 'road']:
             if powerup in TILE_POWERUPS[tile_type]:
-                if counts['next_all'][tile_type] == 0:
-                    powerups_to_drop.append(powerup)
+                if counts['next_all'][tile_type] == 0 and len(powerup_inventory) == 3 \
+                        and counts['next_all']['win'] > 10:
+                    powerups_to_activate.append(powerup)
 
                 if counts['next_ten'][tile_type] > 0 and powerup not in active_powerups_names:
                     powerups_to_activate.append(powerup)
@@ -35,6 +36,10 @@ def check_for_applicable_powerups(powerup_inventory, active_powerups, counts):
                 and (counts['next_ten']['rain'] > 4 or counts['next_one']['rain'] == 1):
             powerups_to_activate.append(powerup)
 
-    return powerups_to_activate, powerups_to_drop
+        # INVERT STREAMS
+        if powerup == 'InvertStreams' and (counts['next_ten']['water'] > 5 or len(powerup_inventory) == 3):
+            powerups_to_activate.append(powerup)
+
+    return powerups_to_activate
 
 

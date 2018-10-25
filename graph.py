@@ -11,11 +11,11 @@ DIR_OFFSET = {'n': (-1, 0),
 
 NBR_TILES = 100
 MAX_INT = 100000
-RAIN_PUNISHMENT = 10    # TODO: Optimize
+RAIN_PUNISHMENT = 10    # TODO: Optimize, not used?
 STAMINA_SAFETY = 1
 
 MOVEMENT_COST = {'water': 45, 'road': 31, 'trail': 40, 'grass': 50, 'rain': RAIN_PUNISHMENT, 'forest': MAX_INT,
-             'start': MAX_INT, 'win': 0}
+                 'start': 30, 'win': 30}    # TODO: changed from max_int to 30 and 0 to 30
 STAMINA_COST = {'fast': 50, 'medium': 30, 'slow': 10, 'step': 15}
 MOVEMENT_POINTS = {'fast': 210, 'medium': 150, 'slow': 100}
 
@@ -34,10 +34,10 @@ def add_valid_edge(id_x, id_y, target_x, target_y, tiles):
     elif id_y == 99 and target_y == 100:
         return False
 
-    if tiles[target_y][target_x]['type'] in ['forest', 'rocky_water']:  # Todo: Check rocky water
+    if tiles[target_y][target_x]['type'] in ['forest', 'rockywater']:  # Todo: Check rocky water
         return False
 
-    if tiles[id_y][id_x]['type'] in ['forest', 'rocky_water']:  # Todo: Check rocky water
+    if tiles[id_y][id_x]['type'] in ['forest', 'rockywater']:  # Todo: Check rocky water
         return False
 
     return True
@@ -138,14 +138,14 @@ def create_baseline(tiles, current_pos, current_stamina, active_powerups):
 
                     # adjust weights
                     weight_reduction = 1
-                    if current_tile['type'] == 'road' and 'Cycletire' in active_powerups:
+                    if target_tile['type'] == 'road' and 'Cycletire' in active_powerups:
                         weight_reduction *= 0.75
-                    elif current_tile['type'] == 'water' and 'Flippers' in active_powerups:
+                    elif target_tile['type'] == 'water' and 'Flippers' in active_powerups:
                         weight_reduction *= 0.75
-                    elif current_tile['type'] == 'trail' and 'Shoes' in active_powerups:
+                    elif target_tile['type'] == 'trail' and 'Shoes' in active_powerups:
                         weight_reduction *= 0.75
 
-                    weight = weight_reduction * MOVEMENT_COST[current_tile['type']]
+                    weight = weight_reduction * MOVEMENT_COST[target_tile['type']]
                     # weight = MOVEMENT_COST[target_tile['type']]
 
                     # if 'weather' in target_tile and target_tile['weather'] == 'rain':
