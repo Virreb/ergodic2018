@@ -4,7 +4,7 @@ import time
 
 class API:
     _base_api_path = "http://theconsidition.se/considition/ironman/"
-    _api_key = "c83a7b3d-0ca8-4060-9c5c-d7e5a3ae7297"
+    _api_key = ""
     _max_players = 1
     _map = "standardmap"
     _number_of_elevations = 10
@@ -98,6 +98,9 @@ class API:
         response = r.json()
         if not response["success"]:
             print(response["message"])
+            while not response["success"]:
+                response = self.get_game(game_id)
+            return response
         else:
             return response
 
@@ -111,6 +114,9 @@ class API:
             response = r.json()
             if not response["success"]:
                 print(response["message"])
+                while not response["success"]:
+                    response = self.get_game(game_id)
+                return response
             else:
                 return response
 
@@ -122,6 +128,9 @@ class API:
         response = r.json()
         if not response["success"]:
             print(response["message"])
+            while not response["success"]:
+                response = self.get_game(game_id)
+            return response
         else:
             return response
 
@@ -133,6 +142,9 @@ class API:
         response = r.json()
         if not response["success"]:
             print(response["message"])
+            while not response["success"]:
+                response = self.get_game(game_id)
+            return response
         else:
             return response
 
@@ -144,6 +156,9 @@ class API:
         response = r.json()
         if not response["success"]:
             print(response["message"])
+            while not response["success"]:
+                response = self.get_game(game_id)
+            return response
         else:
             return response
 

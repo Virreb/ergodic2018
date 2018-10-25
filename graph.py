@@ -171,6 +171,16 @@ def create_baseline(tiles, current_pos, current_stamina, active_powerups):
                     cost_graph.add_edge((id_y, id_x), (target_y, target_x), weight=weight)
                     optimize_graph.add_edge((id_y, id_x), (target_y, target_x), weight=1)
 
+#    for id_y in range(max(0, current_pos[0]-10), min(99, current_pos[0]-10)):
+#        for id_x in range(max(0, current_pos[1]-10), min(99, current_pos[1]-10)):
+#            if current_pos != (id_y, id_x):
+#                if not tiles[id_y][id_x]['type'] in ['forest', 'rockywater']:
+#                    for speed in ['fast', 'medium', 'slow']:
+#                        for direction in ['n', 'e', 's', 'w']:
+
+
+
+
     movement = {}
     for speed in ['fast', 'medium', 'slow']:
         for direction in ['n', 'e', 's', 'w']:
