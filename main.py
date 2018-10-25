@@ -1,12 +1,12 @@
 from api import API
 from graph import create_baseline, visualize_path, get_path_counts, get_next_action_from_path
 import time
-from powerups import check_for_applicable_powerups
+from powerups import check_for_applicable_powerups, check_for_perpendicular_powerups
 
 _api_key = "c83a7b3d-0ca8-4060-9c5c-d7e5a3ae7297"
 # Specify your API-key number of players per game),
 # mapname, and number of waterstreams/elevations/powerups here
-_api = API(_api_key, 1, "zurichmap", 10, 10, 1)
+_api = API(_api_key, 1, "southafricamap", 10, 10, 1)
 
 # TODO: Endast en power-up per turn, prioriteringslista per tile?
 
@@ -51,13 +51,21 @@ def solve(game_id):
 
                 # CREATE ACTIONS
                 next_action = get_next_action_from_path(best_path, movement, counts, current_stamina)
-
-                if next_action['speed'] == 'rest':
-                    response = _api.rest(game_id)
-                elif next_action['speed'] == 'step':
-                    response = _api.step(game_id, next_action['direction'])
+                if next_action['speed'] != 'rest':
+                    perp_powerup_dir = check_for_perpendicular_powerups(tiles, current_pos, next_action['direction'])
                 else:
-                    response = _api.make_move(game_id, next_action['direction'], next_action['speed'])
+                    perp_powerup_dir = None
+
+                if perp_powerup_dir is not None:
+                    print(f'FETCHING JUICY POWERUP (direction: {perp_powerup_dir})!')
+                    response = _api.step(game_id, perp_powerup_dir)
+                else:
+                    if next_action['speed'] == 'rest':
+                        response = _api.rest(game_id)
+                    elif next_action['speed'] == 'step':
+                        response = _api.step(game_id, next_action['direction'])
+                    else:
+                        response = _api.make_move(game_id, next_action['direction'], next_action['speed'])
 
             if response is not None:
                 state = response["gameState"]

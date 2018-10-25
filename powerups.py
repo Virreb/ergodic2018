@@ -1,3 +1,5 @@
+
+from graph import PERPENDICULAR_DIRS, DIR_OFFSET
 USE_INSTANT_POWERUPS = ['RestoreStamina', 'Energyboost', 'Potion', 'StaminaSale']
 TILE_POWERUPS = {'water': ['Flippers'],
                  'trail': ['Shoes'],
@@ -44,4 +46,14 @@ def check_for_applicable_powerups(powerup_inventory, active_powerups, counts):
 
     return powerups_to_activate
 
+
+def check_for_perpendicular_powerups(tiles, current_pos, current_direction):
+
+    for perp_dir in PERPENDICULAR_DIRS[current_direction]:
+        target_tile = tiles[current_pos[0] + DIR_OFFSET[perp_dir][0]][current_pos[1] + DIR_OFFSET[perp_dir][1]]
+
+        if 'powerup' in target_tile and target_tile['powerup']['name'] in USE_INSTANT_POWERUPS:
+            return perp_dir
+        else:
+            return None
 
